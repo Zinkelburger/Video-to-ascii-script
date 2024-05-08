@@ -17,11 +17,18 @@ if [ ! -f "ascii_video_frames.txt" ]; then
     exit 1
 fi
 
-# Step 2: Convert the generated ASCII frames to a C header file
-xxd -i ascii_video_frames.txt > ascii_frames.h
+# Compress the ASCII frames
+gzip -c ascii_video_frames.txt > ascii_video_frames.gz
+
+# Step 2: Convert the compressed ASCII frames to a C header file
+xxd -i ascii_video_frames.gz > ascii_frames.h
+
+file_size=$(stat -c %s ascii_frames.h)
+
+sed -i "s/#define UNCOMPRESSED_SIZE [0-9]\+/#define UNCOMPRESSED_SIZE $file_size/" play.c
 
 # Step 3: Compile the C program that uses the header
-gcc -o ascii_player play.c
+gcc -o ascii_player play.c -lz
 
 # Check if the compilation was successful
 if [ $? -eq 0 ]; then

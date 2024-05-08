@@ -42,6 +42,8 @@ def video_to_ascii(video_path, output_file_path):
             frame_count += 1
             print(f"Processed frame {frame_count}")
 
+        file.write('---END---\n')
+
         # Release video capture
         cap.release()
         print("Done processing video.")

@@ -12,11 +12,14 @@ fi
 # Read and display the file content frame by frame
 while IFS= read -r line
 do
-    if [[ "$line" == "---FRAME---" ]]; then
-        sleep 0.033
-        clear
+    # Check for the end delimiter
+    if [[ "$line" == "---END---" ]]; then
+        break # Exit the loop if end delimiter is found
+    elif [[ "$line" == "---FRAME---" ]]; then
+        sleep 0.016 # Wait for a short period to simulate the time between frames
+        clear       # Clear the screen for the next frame
     else
-        echo "$line"
+        echo "$line" # Print the line of ASCII art
     fi
 done < "$ASCII_FILE"
 
