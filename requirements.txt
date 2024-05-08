@@ -1,0 +1,2 @@
+ascii-magic
+opencv-python
