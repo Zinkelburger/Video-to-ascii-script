@@ -4,17 +4,22 @@ from PIL import Image
 import io
 import sys
 
-def video_to_ascii(video_path, output_file_path):
-    # Open the video file
+def video_to_ascii(video_path, output_file_path, percentage):
     cap = cv2.VideoCapture(video_path)
     if not cap.isOpened():
         print("Error: Could not open video.")
         return
 
-    # Open the output file
+    total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+    end_frame = int(total_frames * (percentage / 100))
+
+    if end_frame == 0:
+        print("Error: Percentage too low, no frames to process.")
+        return
+
     with open(output_file_path, 'w') as file:
         frame_count = 0
-        while True:
+        while frame_count < end_frame:
             # Read frame from the video
             ret, frame = cap.read()
             if not ret:
@@ -32,26 +37,30 @@ def video_to_ascii(video_path, output_file_path):
                 data = output.getvalue()
                 ascii_art = AsciiArt.from_image(io.BytesIO(data))
 
-            # Get ASCII art string
             ascii_frame = ascii_art.to_ascii()
 
-            # Write the ASCII art to file
             file.write(ascii_frame + '\n---FRAME---\n')
 
-            # Optional: Print progress
             frame_count += 1
-            print(f"Processed frame {frame_count}")
+            sys.stdout.write(f"\rProcessed frame {frame_count}/{end_frame}")
+            sys.stdout.flush()
 
         file.write('---END---\n')
 
-        # Release video capture
         cap.release()
-        print("Done processing video.")
+        print("\nDone processing video.")
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
-        print("Usage: python vid_to_ascii.py <video_path>")
+        print("Usage: python vid_to_ascii.py <video_path> [percentage]")
         sys.exit(1)
+
     video_path = sys.argv[1]
+
+    percentage = float(sys.argv[2]) if len(sys.argv) > 2 else 100
+    if percentage <= 0:
+        print("Error: Percentage must be greater than 0.")
+        sys.exit(1)
+
     output_file_path = "ascii_video_frames.txt"
-    video_to_ascii(video_path, output_file_path)
+    video_to_ascii(video_path, output_file_path, percentage)

@@ -1,4 +1,13 @@
-Python code to generate the ascii from the video
-Option to download the full video in ascii, part of it, can specify the percentage (0-100%, range always starts at 0). 
-Option to curl it (e.g. type “curl <url>” and it’ll start rick rolling
-Option for it to be in color, or black & white
+# Video to ascii
+`./generate.sh <.mp4 file> <optional percentage>`
+This will generate `ascii_video`, which will play the .mp4 file in ascii.
+
+## Steps
+`vid_to_ascii.py` uses OpenCV and ascii_magic, which you can install from requirements.txt.
+It generates `ascii_video_frames.txt` which is a very large file with all of the frames in ascii.
+
+Because it's a huge file, it is compressed with `gzip`. Its then turned into a binary object `ascii_video_frames.o`, so it can be compiled with C.
+
+We `sed` the uncompressed file size into C, and then compile it.
+
+Now you should have a wonderful `ascii_video` executable to send to your friends (and enemies). The default one in this repo is a rickroll.
