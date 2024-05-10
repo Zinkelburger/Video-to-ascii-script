@@ -16,9 +16,6 @@ gzip -9 -c -k ascii_video_frames.txt > ascii_video_frames.gz
 echo "Running objcopy"
 objcopy --input binary --output elf64-x86-64 --binary-architecture i386:x86-64 ascii_video_frames.gz ascii_video_frames.o
 
-file_size=$(stat -c %s ascii_video_frames.txt)
-
-sed -i "s/#define UNCOMPRESSED_SIZE [0-9]\+/#define UNCOMPRESSED_SIZE $file_size/" play_obj.c
-
 echo "Running gcc"
-gcc -o ascii_video play_obj.c ascii_video_frames.o -Os -lz
+file_size=$(stat -c %s ascii_video_frames.txt)
+gcc -DUNCOMPRESSED_SIZE="$file_size" -o ascii_video play_obj.c ascii_video_frames.o -Os -lz

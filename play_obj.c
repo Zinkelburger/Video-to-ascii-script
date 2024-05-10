@@ -9,8 +9,6 @@
 extern unsigned char _binary_ascii_video_frames_gz_start;
 extern unsigned char _binary_ascii_video_frames_gz_end;
 
-#define UNCOMPRESSED_SIZE 113796577
-
 void handle_signal(int sig) {
         // put the cursor back
         printf("\033[?25h\n");
