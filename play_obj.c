@@ -4,6 +4,7 @@
 #include <unistd.h>
 #include <zlib.h>
 #include <signal.h>
+#include <sys/ioctl.h>
 
 // Declarations to access the embedded data
 extern unsigned char _binary_ascii_video_frames_gz_start;
@@ -55,6 +56,56 @@ int decompress_data(unsigned char **uncompressed_data) {
         return 0;
 }
 
+// Function to get the terminal size
+void get_terminal_size(int *rows, int *cols) {
+        struct winsize ws;
+        if (ioctl(STDOUT_FILENO, TIOCGWINSZ, &ws) == -1) {
+                perror("ioctl");
+                exit(EXIT_FAILURE);
+        }
+        *rows = ws.ws_row;
+        *cols = ws.ws_col;
+}
+
+// Function to print a string up to a certain number of visible characters
+void print_visible(const char *str, int cols) {
+        int num_printed = 0;
+        int in_escape = 0;
+
+        while (*str && num_printed < cols) {
+                if (*str == '\033') {
+                        in_escape = 1;
+                        putchar(*str);
+                } else if (in_escape && *str == 'm') {
+                        in_escape = 0;
+                        putchar(*str);
+                } else if (!in_escape) {
+                        if (*str != ' ') {
+                                if (num_printed < cols) {
+                                        putchar(*str);
+                                        num_printed++;
+                                }
+                        }
+                } else {
+                        putchar(*str);
+                }
+                str++;
+        }
+        putchar('\n');
+}
+
+// Function to print a frame within the terminal dimensions
+void print_frame_within_terminal(char *frame, int rows, int cols) {
+        int line_count = 0;
+        char *line = strtok(frame, "\n");
+
+        while (line != NULL && line_count < rows) {
+                print_visible(line, cols);
+                line_count++;
+                line = strtok(NULL, "\n");
+        }
+}
+
 int main() {
         signal(SIGINT, handle_signal);
 
@@ -69,12 +120,17 @@ int main() {
         const char *delimiter = "\n---FRAME---\n";
         char *end_marker = strstr(frame, "---END---\n");
 
+        // hides the cursor
         printf("\033[?25l");
         while (1) {
+                int rows, cols;
                 while ((next_frame = strstr(frame, delimiter)) != NULL && frame < end_marker) {
+                        get_terminal_size(&rows, &cols);
                         char temp = *next_frame;
                         *next_frame = '\0';
-                        printf("\033[H\033[J%s", frame);
+                        // move cursor to top left, clear screen
+                        printf("\033[H\033[J");
+                        print_frame_within_terminal(frame, rows, cols);
                         fflush(stdout);
                         usleep(40000);
                         *next_frame = temp;
@@ -82,9 +138,10 @@ int main() {
                 }
 
                 if (frame < end_marker) {
-                        printf("%s", frame);
+                        printf("\033[H\033[J");
+                        print_frame_within_terminal(frame, rows, cols);
                 }
-                
+
                 frame = (char *)uncompressed_data;
         }
 
