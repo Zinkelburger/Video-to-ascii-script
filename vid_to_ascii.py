@@ -3,6 +3,7 @@ from ascii_magic import AsciiArt
 from PIL import Image
 import io
 import sys
+import re
 
 def video_to_ascii(video_path, output_file_path, percentage):
     cap = cv2.VideoCapture(video_path)
@@ -38,6 +39,7 @@ def video_to_ascii(video_path, output_file_path, percentage):
                 ascii_art = AsciiArt.from_image(io.BytesIO(data))
 
             ascii_frame = ascii_art.to_ascii()
+            ascii_frame = re.sub(' ', '', ascii_frame)
 
             file.write(ascii_frame + '\n---FRAME---\n')
 

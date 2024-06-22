@@ -132,7 +132,7 @@ int main() {
                         printf("\033[H\033[J");
                         print_frame_within_terminal(frame, rows, cols);
                         fflush(stdout);
-                        usleep(40000);
+                        usleep(DELAY);
                         *next_frame = temp;
                         frame = next_frame + strlen(delimiter);
                 }
